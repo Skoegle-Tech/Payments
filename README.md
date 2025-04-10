@@ -21,9 +21,8 @@ Use this for testing the payment UI flow without actual transactions.
 
 **Example:**
 
-```
+
 https://payments.skoegle.com/demo-payment?name=Manoj&email=manoj@gmail.com&amount=50&redirectingurl=https://skoegle.com
-```
 
 ---
 
@@ -43,9 +42,7 @@ This is the actual payment gateway integration.
 
 **Example:**
 
-```
 https://payments.skoegle.com?name=Manoj&email=manoj@gmail.com&amount=50&redirectingurl=https://skoegle.com
-```
 
 ---
 
@@ -55,9 +52,8 @@ Once the payment is successfully completed, the user will be redirected to the U
 
 **Example of Redirect URL:**
 
-```
 https://skoegle.in/?orderId=order_1744268526856&name=Manoj&amount=50&status=CHARGED
-```
+
 
 ### Parameters:
 - `orderId` – The unique order identifier (required)
@@ -77,9 +73,9 @@ After completing the payment, you can download the receipt by accessing the `/do
 
 **Example:**
 
-```
+
 https://payments.skoegle.com/downloadReceipt/order_1744268526856
-```
+
 
 This will allow the user to download the receipt for the order with ID `order_1744268526856`.
 
