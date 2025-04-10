@@ -39,7 +39,7 @@
     <hr>
 
     <h4>🔹 Demo Payment</h4>
-    <p>Use this for testing payment UI flow without actual transactions.</p>
+    <p>Use this for testing the payment UI flow without actual transactions.</p>
 
     <p><strong>URL:</strong></p>
     <ul>
@@ -52,10 +52,11 @@
       <li><code>amount</code> – Payment amount (required)</li>
       <li><code>email</code> – User email (required)</li>
       <li><code>name</code> – Full name (required)</li>
+      <li><code>redirectingurl</code> – URL to redirect after payment (required)</li>
     </ul>
 
     <pre>Example:
-https://payments.skoegle.com/demo-payment?amount=50&email=manojgowdabr89@gmail.com&name=ManojGowda
+https://payments.skoegle.com/demo-payment?name=Manoj&email=manoj@gmail.com&amount=50&redirectingurl=https://skoegle.com
 </pre>
 
     <hr>
@@ -74,17 +75,49 @@ https://payments.skoegle.com/demo-payment?amount=50&email=manojgowdabr89@gmail.c
       <li><code>amount</code> – Payment amount (required)</li>
       <li><code>email</code> – User email (required)</li>
       <li><code>name</code> – Full name (required)</li>
+      <li><code>redirectingurl</code> – URL to redirect after payment (required)</li>
     </ul>
 
     <pre>Example:
-https://payments.skoegle.com?amount=50&email=manojgowdabr89@gmail.com&name=ManojGowda
+https://payments.skoegle.com?name=Manoj&email=manoj@gmail.com&amount=50&redirectingurl=https://skoegle.com
 </pre>
+
+    <hr>
+
+    <h4>🔹 Redirect URL After Payment</h4>
+    <p>Once the payment is successfully completed, the user will be redirected to the URL specified in the <code>redirectingurl</code> parameter. The URL will include the payment details such as <code>orderId</code>, <code>name</code>, <code>amount</code>, and <code>status</code>.</p>
+
+    <p><strong>Example of Redirect URL:</strong></p>
+    <pre>https://skoegle.in/?orderId=order_1744268526856&name=Manoj&amount=50&status=CHARGED</pre>
+
+    <p>The parameters in the redirect URL will be as follows:</p>
+    <ul>
+      <li><code>orderId</code> – The unique order identifier (required)</li>
+      <li><code>name</code> – Full name (required)</li>
+      <li><code>amount</code> – Payment amount (required)</li>
+      <li><code>status</code> – Payment status, e.g., <code>CHARGED</code> (required)</li>
+    </ul>
+
+    <hr>
+
+    <h4>🔹 Download Receipt</h4>
+    <p>After completing the payment, you can download the receipt by accessing the <code>/downloadReceipt/:orderId</code> endpoint. Replace <code>:orderId</code> with the actual order ID you wish to download the receipt for.</p>
+
+    <p><strong>URL:</strong></p>
+    <ul>
+      <li>Live: <code>https://payments.skoegle.com/downloadReceipt/:orderId</code></li>
+      <li>Local: <code>http://localhost:5000/downloadReceipt/:orderId</code></li>
+    </ul>
+
+    <p><strong>Example:</strong></p>
+    <pre>https://payments.skoegle.com/downloadReceipt/order_1744268526856</pre>
+    <p>This will allow the user to download the receipt for the order with ID <code>order_1744268526856</code>.</p>
 
     <hr>
 
     <h4>🔗 GitHub Repository</h4>
     <p>Visit the source code here:</p>
-    <p><a href="https://github.com/Skoegle-Tech/Payments.git" target="_blank">Github Link</a></p>
+    <p><a href="https://github.com/Skoegle-Tech/Payments.git" target="_blank">GitHub Link</a></p>
 
     <hr>
     <footer class="text-muted small">
