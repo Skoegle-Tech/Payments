@@ -1,0 +1,162 @@
+/* Common styles */
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Payment Form Styles */
+.payment-form-card {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 500px;
+  margin: 50px auto;
+  border: none;
+}
+
+.form-header {
+  background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+  padding: 20px;
+  color: white;
+}
+
+.form-icon {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.form-control {
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+  border-color: #3a7bd5;
+}
+
+.btn-pay {
+  background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+  border: none;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-pay:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.input-group-text {
+  background-color: #e9ecef;
+  border-radius: 8px 0 0 8px;
+}
+
+/* Payment Response Styles */
+.payment-card {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 500px;
+  margin: 50px auto;
+}
+
+.card-header {
+  padding: 20px;
+}
+
+.success-header {
+  background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+}
+
+.failure-header {
+  background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
+}
+
+.status-icon {
+  font-size: 50px;
+  margin-bottom: 15px;
+}
+
+.receipt-details {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.receipt-details p {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.countdown {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: 15px;
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%);
+  border: none;
+}
+
+.progress {
+  height: 8px;
+  margin-top: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .payment-form-card,
+  .payment-card {
+    margin: 20px auto;
+    max-width: 95%;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .form-icon,
+  .status-icon {
+    font-size: 40px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.payment-form-card,
+.payment-card {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  background-color: #555;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  z-index: 1;
+  margin-left: 10px;
+  opacity: 0.9;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Copy cursor */
+[data-copyable] {
+  cursor: pointer;
+}

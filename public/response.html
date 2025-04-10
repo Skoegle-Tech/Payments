@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .receipt-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+    }
+    .receipt-header {
+      padding: 25px;
+      text-align: center;
+      position: relative;
+    }
+    .receipt-status-icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+    }
+    .receipt-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .receipt-subtitle {
+      font-size: 16px;
+      color: #6c757d;
+    }
+    .receipt-body {
+      padding: 20px 25px;
+      border-top: 2px dashed #dee2e6;
+      border-bottom: 2px dashed #dee2e6;
+      background-color: #fff;
+    }
+    .receipt-footer {
+      padding: 20px 25px;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+    .receipt-details {
+      margin-bottom: 25px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .amount-row {
+      font-size: 20px;
+      font-weight: 700;
+      color: #212529;
+      padding: 15px 0;
+      border-top: 2px solid #dee2e6;
+      margin-top: 10px;
+    }
+    .btn-download {
+      background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%);
+      border: none;
+      padding: 12px 25px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .success-header {
+      background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+      color: white;
+    }
+    .failure-header {
+      background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
+      color: white;
+    }
+    .pending-header {
+      background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+      color: white;
+    }
+    .progress {
+      height: 8px;
+      margin-top: 15px;
+      border-radius: 4px;
+    }
+    .countdown {
+      font-size: 14px;
+      color: #6c757d;
+      margin-top: 15px;
+    }
+    .receipt-stamp {
+      position: absolute;
+      top: 70px;
+      right: 30px;
+      transform: rotate(25deg);
+      font-size: 24px;
+      font-weight: bold;
+      color: rgba(0, 128, 0, 0.2);
+      border: 5px solid rgba(0, 128, 0, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+      z-index: 10;
+    }
+    .receipt-stamp.failed {
+      color: rgba(220, 53, 69, 0.2);
+      border-color: rgba(220, 53, 69, 0.2);
+    }
+    .receipt-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 120px;
+      opacity: 0.03;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .receipt-id {
+      font-size: 12px;
+      color: #adb5bd;
+      margin-top: 5px;
+    }
+    .current-user {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: right;
+    }
+    .modal-dialog-centered {
+      top: 30%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="receipt-container">
+    <div id="receiptHeader" class="receipt-header pending-header">
+      <div class="current-user">
+        <div id="currentDateTime"></div>
+        <div id="currentUser">Skoegle HDFC</div>
+      </div>
+
+      <div id="statusIcon" class="receipt-status-icon">
+        <i class="fas fa-spinner fa-spin"></i>
+      </div>
+      <h1 id="statusTitle" class="receipt-title">Processing Payment</h1>
+      <p class="receipt-subtitle">Thank you for your payment</p>
+      <div id="receiptStamp" class="receipt-stamp" style="display: none;">PAID</div>
+    </div>
+
+    <div class="receipt-watermark">
+      <i class="fas fa-receipt"></i>
+    </div>
+
+    <div class="receipt-body">
+      <div class="receipt-details">
+        <div class="detail-row"><div class="detail-label">Order ID:</div><div id="orderId" class="detail-value">-</div></div>
+        <div class="detail-row"><div class="detail-label">Customer:</div><div id="customerName" class="detail-value">-</div></div>
+        <div class="detail-row"><div class="detail-label">Email:</div><div id="customerEmail" class="detail-value">-</div></div>
+        <div class="detail-row"><div class="detail-label">Date:</div><div id="paymentDate" class="detail-value">-</div></div>
+        <div class="detail-row"><div class="detail-label">Status:</div><div id="paymentStatus" class="detail-value">-</div></div>
+        <div class="detail-row amount-row"><div class="detail-label">Total Amount:</div><div id="paymentAmount" class="detail-value">-</div></div>
+      </div>
+    </div>
+
+    <div class="receipt-footer">
+      <div class="d-grid gap-2">
+        <a id="downloadBtn" href="#" class="btn btn-download text-white mb-3">
+          <i class="fas fa-download me-2"></i> Download Receipt
+        </a>
+        <button id="tryAgainBtn" class="btn btn-outline-primary" style="display: none;">
+          <i class="fas fa-redo me-2"></i> Try Again
+        </button>
+      </div>
+
+      <div id="redirectSection" class="mt-3">
+        <p class="countdown" id="redirectMessage">
+          Redirecting in <span id="countdown">10</span> seconds...
+        </p>
+        <div class="progress">
+          <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="receipt-id mt-4">
+        Receipt ID: <span id="receiptId"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Modal -->
+  <div class="modal fade" id="printModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-header">
+          <h5 class="modal-title">Print Receipt</h5>
+        </div>
+        <div class="modal-body">
+          Do you want to print your receipt?
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-primary" id="printBtn">Yes, Print</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId') || 'ORDER_' + Date.now();
+    const status = urlParams.get('status') || 'PENDING';
+    const name = urlParams.get('name') || 'Demo User';
+    const email = urlParams.get('email') || 'user@example.com';
+    const amount = urlParams.get('amount') || '100.00';
+    let redirectingurl = decodeURIComponent(urlParams.get('redirectingurl') || '');
+
+    document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+    document.getElementById('orderId').textContent = orderId;
+    document.getElementById('customerName').textContent = name;
+    document.getElementById('customerEmail').textContent = email;
+    document.getElementById('paymentAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    document.getElementById('paymentStatus').textContent = status;
+    document.getElementById('paymentDate').textContent = new Date().toLocaleString();
+    document.getElementById('receiptId').textContent = 'REC_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+
+    const header = document.getElementById('receiptHeader');
+    const icon = document.getElementById('statusIcon');
+    const title = document.getElementById('statusTitle');
+    const stamp = document.getElementById('receiptStamp');
+    const progressBar = document.getElementById('progressBar');
+
+    if (status === 'CHARGED') {
+      header.className = 'receipt-header success-header';
+      icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+      title.textContent = 'Payment Successful!';
+      stamp.style.display = 'block';
+      stamp.textContent = 'PAID';
+      document.getElementById('paymentStatus').innerHTML = '<span class="badge bg-success">CHARGED</span>';
+      progressBar.classList.remove('bg-info');
+      progressBar.classList.add('bg-success');
+
+      // Show print modal instead of auto-download
+      const modal = new bootstrap.Modal(document.getElementById('printModal'));
+      setTimeout(() => modal.show(), 1000);
+
+      document.getElementById('printBtn').addEventListener('click', () => {
+        modal.hide();
+        document.getElementById('downloadBtn').href = `/downloadReceipt/${orderId}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&amount=${amount}&status=${status}`;
+    document.getElementById('downloadBtn').download = `receipt_${orderId}.pdf`;
+        document.getElementById('downloadBtn').click();
+      });
+    } else if (status === 'FAILED' || status === 'AUTHORIZATION_FAILED') {
+      header.className = 'receipt-header failure-header';
+      icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+      title.textContent = 'Payment Failed';
+      stamp.style.display = 'block';
+      stamp.textContent = 'FAILED';
+      stamp.classList.add('failed');
+      document.getElementById('paymentStatus').innerHTML = '<span class="badge bg-danger">FAILED</span>';
+      progressBar.classList.remove('bg-info');
+      progressBar.classList.add('bg-danger');
+      document.getElementById('tryAgainBtn').style.display = 'block';
+    } else {
+      icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      title.textContent = 'Processing Payment';
+      document.getElementById('paymentStatus').innerHTML = '<span class="badge bg-warning text-dark">PENDING</span>';
+    }
+
+    // Redirect Logic
+    if (redirectingurl) {
+      let seconds = 10;
+      const countdownElem = document.getElementById('countdown');
+      const interval = setInterval(() => {
+        seconds--;
+        countdownElem.textContent = seconds;
+        progressBar.style.width = (seconds * 10) + '%';
+        if (seconds <= 0) {
+          clearInterval(interval);
+          const redirectParams = new URLSearchParams({ orderId, name, amount, status });
+          window.location.href = redirectingurl + (redirectingurl.includes('?') ? '&' : '?') + redirectParams.toString();
+        }
+      }, 1000);
+    } else {
+      document.getElementById('redirectSection').style.display = 'none';
+    }
+
+    document.getElementById('downloadBtn').href = `/downloadReceipt/${orderId}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&amount=${amount}&status=${status}`;
+    document.getElementById('downloadBtn').download = `receipt_${orderId}.pdf`;
+
+    document.getElementById('tryAgainBtn').onclick = () => {
+      window.location.href = '/payment.html';
+    };
+  </script>
+</body>
+</html>
