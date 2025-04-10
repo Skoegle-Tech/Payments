@@ -8,7 +8,7 @@ const { Juspay } = require('expresscheckout-nodejs');
 require('dotenv').config();
 const CURRENT_DATE = new Date().toLocaleString();
 const CURRENT_USER = 'Skoegle HDFC';
-
+const unmaper = require('unmaper');
 
 const publicKey = fs.readFileSync("./Pem/key_00d54480d3e14257b357b79632d8f349.pem");
 const privateKey = fs.readFileSync("./Pem/privateKey.pem");
@@ -28,7 +28,7 @@ const juspay = new Juspay({
 // Initialize app
 const app = express();
 const port = process.env.PORT || 5000;
-
+app.get("/ping",unmaper)
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
