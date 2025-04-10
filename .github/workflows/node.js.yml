@@ -32,5 +32,4 @@ jobs:
         echo "${{ secrets.MYENVS }}" > .env
       shell: bash
     - run: npm ci
-    # - run: npm run build --if-present
-    # - run: npm test
+    - run: pm2 restart pay
