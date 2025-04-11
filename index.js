@@ -10,7 +10,7 @@ const CURRENT_DATE = new Date().toLocaleString();
 const CURRENT_USER = 'Skoegle HDFC';
 const unmaper = require('unmaper');
 
-const publicKey = fs.readFileSync("./Pem/key_00d54480d3e14257b357b79632d8f349.pem");
+const publicKey = fs.readFileSync("./Pem/key_10181d5020444b84980d9278511b72e3.pem");
 const privateKey = fs.readFileSync("./Pem/privateKey.pem");
 Juspay.customLogger = Juspay.silentLogger;
 
