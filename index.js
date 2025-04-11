@@ -71,7 +71,7 @@ app.get('/', (req, res) => {
     const finalAmount = parseInt(amount);
     
     // Properly handle redirectingurl
-    let returnUrl = `${req.protocol}://${req.get('host')}/handleJuspayResponse?orderId=${orderId}`;
+    let returnUrl = `${req.protocol}://${req.get('host')}/handleJuspayResponse`;
     if (redirectingurl && redirectingurl.trim() !== '') {
       returnUrl += `?redirectingurl=${encodeURIComponent(redirectingurl)}`;
     }
