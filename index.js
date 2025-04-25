@@ -9,11 +9,11 @@ require('dotenv').config();
 const CURRENT_DATE = new Date().toLocaleString();
 const CURRENT_USER = 'Skoegle HDFC';
 const unmaper = require('unmaper');
-
+const basicAuth = require('basic-auth');
 const publicKey = fs.readFileSync("./Pem/key_10181d5020444b84980d9278511b72e3.pem");
 const privateKey = fs.readFileSync("./Pem/privateKey.pem");
 Juspay.customLogger = Juspay.silentLogger;
-
+const moment = require('moment');
 // Initialize Juspay
 const juspay = new Juspay({
   merchantId: process.env.MERCHANT_ID,
@@ -54,7 +54,17 @@ const PaymentLog = mongoose.model('PaymentLog', new mongoose.Schema({
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
+const authMiddleware = (req, res, next) => {
+  
+  const user = basicAuth(req);
+  const isAuthorized = user && user.name === 'admin' && user.pass === 'Skoegle@2025';
 
+  if (!isAuthorized) {
+    res.set('WWW-Authenticate', 'Basic realm="Secure Area"');
+    return res.status(401).send('Authentication required.');
+  }
+  next();
+};
 // Current date and user info middleware
 app.use((req, res, next) => {
   res.locals.currentDate = CURRENT_DATE;
@@ -63,7 +73,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/pay', (req, res) => {
   const { name, email, amount, redirectingurl } = req.query;
 
   if (name && email && amount) {
@@ -111,50 +121,7 @@ app.get('/', (req, res) => {
   }
 });
 
-app.post('/startPayment', async (req, res) => {
-  try {
-    const { name, email, amount, redirectingurl } = req.body;
-    const finalAmount = amount && amount > 0 ? parseInt(amount) : Math.floor(Math.random() * 100) + 1;
-    const orderId = `order_${Date.now()}`;
-    
-    // Properly handle redirectingurl
-    let returnUrl = `https://${req.get('host')}/handleJuspayResponse`;
-    if (redirectingurl && redirectingurl.trim() !== '') {
-      returnUrl += `?redirectingurl=${encodeURIComponent(redirectingurl)}`;
-    }
-    
-    console.log(`Creating payment session with return URL: ${returnUrl}`);
-    console.log(`Redirect URL provided: ${redirectingurl || 'None'}`);
 
-    const session = await juspay.orderSession.create({
-      order_id: orderId,
-      amount: finalAmount,
-      payment_page_client_id: process.env.PAYMENT_PAGE_CLIENT_ID,
-      customer_id: email || 'guest-user',
-      action: 'paymentPage',
-      return_url: returnUrl,
-      currency: 'INR'
-    });
-
-    await PaymentLog.create({
-      orderId,
-      name,
-      email,
-      amount: finalAmount,
-      response: session,
-      user: CURRENT_USER,
-      redirectingurl: redirectingurl
-    });
-
-    console.log(`Payment initiated via POST: OrderID ${orderId}, Amount: ₹${finalAmount}, User: ${email}`);
-    res.redirect(session.payment_links.web);
-  } catch (err) {
-    console.error('Error initiating payment:', err);
-    res.status(500).send('Payment initiation failed');
-  }
-});
-
-// Handle GET requests from Juspay callback
 app.get('/handleJuspayResponse', async (req, res) => {
   const orderId = req.query.order_id || req.query.orderId;
   let redirectingurl = req.query.redirectingurl || '';
@@ -519,21 +486,35 @@ app.get('/api/paymentStatus/:orderId', async (req, res) => {
   }
 });
 
-// Admin route to get all payments (protected in production)
-app.get('/admin/payments', async (req, res) => {
+
+
+
+app.get('/', authMiddleware, async (req, res) => {
   try {
-    // In production, this should be protected with authentication
-    const payments = await PaymentLog.find().sort({ createdAt: -1 }).limit(100);
-    
+    let { start, end } = req.query;
+
+    // Default: last 7 days
+    const startDate = start ? new Date(start) : moment().subtract(7, 'days').toDate();
+    const endDate = end ? new Date(end) : new Date();
+
+    const payments = await PaymentLog.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).sort({ createdAt: -1 }).limit(100);
+
     if (req.headers.accept === 'application/json') {
       return res.json({
         success: true,
         count: payments.length,
-        payments: payments
+        payments
       });
     }
-    
-    // Simple HTML table for browser viewing
+
+    const CURRENT_DATE = new Date().toLocaleString();
+    const CURRENT_USER = 'admin';
+
     let html = `
       <!DOCTYPE html>
       <html>
@@ -548,13 +529,36 @@ app.get('/admin/payments', async (req, res) => {
             overflow: hidden;
             text-overflow: ellipsis;
           }
+          .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          #searchInput {
+            width: 300px;
+          }
         </style>
       </head>
       <body>
-        <h1>Payment Logs</h1>
+        <div class="top-bar mb-3">
+          <h1>Payment Logs</h1>
+          
+        </div>
+        
+        <form method="GET" class="mb-4">
+          <label>Start Date: <input type="date" name="start" value="${start || ''}"></label>
+          <label class="ms-3">End Date: <input type="date" name="end" value="${end || ''}"></label>
+          <button type="submit" class="btn btn-sm btn-dark ms-2">Filter</button>
+        </form>
+
+        <div class="mb-3">
+          <input type="text" id="searchInput" class="form-control" placeholder="Search by Order ID, Name, Email, Amount, or Status">
+        </div>
+
         <p>Current Date: ${CURRENT_DATE}</p>
         <p>Current User: ${CURRENT_USER}</p>
-        <table class="table table-striped">
+
+        <table class="table table-striped" id="paymentTable">
           <thead>
             <tr>
               <th>Order ID</th>
@@ -569,7 +573,7 @@ app.get('/admin/payments', async (req, res) => {
           </thead>
           <tbody>
     `;
-    
+
     payments.forEach(payment => {
       html += `
         <tr>
@@ -592,14 +596,26 @@ app.get('/admin/payments', async (req, res) => {
         </tr>
       `;
     });
-    
+
     html += `
           </tbody>
         </table>
+
+        <script>
+          const searchInput = document.getElementById('searchInput');
+          searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#paymentTable tbody tr');
+            rows.forEach(row => {
+              const text = row.innerText.toLowerCase();
+              row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+          });
+        </script>
       </body>
       </html>
     `;
-    
+
     res.send(html);
   } catch (err) {
     console.error('Error fetching payment logs:', err);
@@ -607,41 +623,7 @@ app.get('/admin/payments', async (req, res) => {
   }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  
-  if (req.headers.accept === 'application/json') {
-    return res.status(500).json({
-      success: false,
-      error: 'Server error occurred',
-      message: err.message
-    });
-  }
-  
-  res.status(500).send(`
-    <html>
-      <head>
-        <title>Error</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-      </head>
-      <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
-        <div class="card shadow-sm" style="max-width: 500px;">
-          <div class="card-header bg-danger text-white">
-            <h3>An error occurred</h3>
-          </div>
-          <div class="card-body">
-            <p>Sorry, something went wrong while processing your request.</p>
-            <p><strong>Error:</strong> ${err.message}</p>
-            <a href="/" class="btn btn-primary">Return to Home</a>
-          </div>
-        </div>
-      </body>
-    </html>
-  `);
-});
 
-// 404 handler
 app.use((req, res) => {
   if (req.headers.accept === 'application/json') {
     return res.status(404).json({
