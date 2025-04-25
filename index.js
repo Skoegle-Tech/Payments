@@ -71,7 +71,7 @@ app.get('/', (req, res) => {
     const finalAmount = parseInt(amount);
     
     // Properly handle redirectingurl
-    let returnUrl = `${req.protocol}://${req.get('host')}/handleJuspayResponse`;
+    let returnUrl = `https://${req.get('host')}/handleJuspayResponse`;
     if (redirectingurl && redirectingurl.trim() !== '') {
       returnUrl += `?redirectingurl=${encodeURIComponent(redirectingurl)}`;
     }
@@ -118,7 +118,7 @@ app.post('/startPayment', async (req, res) => {
     const orderId = `order_${Date.now()}`;
     
     // Properly handle redirectingurl
-    let returnUrl = `${req.protocol}://${req.get('host')}/handleJuspayResponse`;
+    let returnUrl = `https://${req.get('host')}/handleJuspayResponse`;
     if (redirectingurl && redirectingurl.trim() !== '') {
       returnUrl += `?redirectingurl=${encodeURIComponent(redirectingurl)}`;
     }
