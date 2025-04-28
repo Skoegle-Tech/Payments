@@ -2,6 +2,7 @@ const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const PDFDocument = require('pdfkit');
 const { Juspay } = require('expresscheckout-nodejs');
@@ -29,6 +30,7 @@ const juspay = new Juspay({
 const app = express();
 const port = process.env.PORT || 5000;
 app.get("/ping",unmaper)
+app.use(cors());
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
