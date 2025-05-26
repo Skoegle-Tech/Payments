@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr('1234567890abcdef'); 
 const bodyParser = require('body-parser');
 const PDFDocument = require('pdfkit');
 const { Juspay } = require('expresscheckout-nodejs');
@@ -78,9 +80,13 @@ app.use((req, res, next) => {
 app.get('/pay', (req, res) => {
   const { name, email, amount, redirectingurl } = req.query;
 
+
+
   if (name && email && amount) {
     const orderId = `order_${Date.now()}`;
-    const finalAmount = parseInt(amount);
+    const encryptedAmount = cryptr.decrypt(amount);
+    console.log(`Encrypted Amount: ${encryptedAmount}`);
+    const finalAmount = parseInt(encryptedAmount);
     
     // Properly handle redirectingurl
     let returnUrl = `https://${req.get('host')}/handleJuspayResponse`;
@@ -124,6 +130,53 @@ app.get('/pay', (req, res) => {
 });
 
 
+app.get("/createPayment", (req, res) => {
+  const { amount, key, type } = req.query;
+
+  if (!key) {
+    return res.status(400).json({ success: false, message: 'Missing key' });
+  }
+
+  if (key !== '1234567890abcdef') {
+    return res.status(403).json({ success: false, message: 'Invalid key' });
+  }
+
+  if (type === 'encrypt') {
+    if (!amount) {
+      return res.status(400).json({ success: false, message: 'Missing amount to encrypt' });
+    }
+
+    const encryptedAmount = cryptr.encrypt(amount);
+    console.log(`Encrypted Amount: ${encryptedAmount}`);
+
+    return res.json({
+      success: true,
+      type: 'encrypt',
+      encryptedAmount,
+    });
+
+  } else if (type === 'decrypt' || !type) {
+    if (!amount) {
+      return res.status(400).json({ success: false, message: 'Missing encrypted amount to decrypt' });
+    }
+
+    try {
+      const decryptedAmount = cryptr.decrypt(amount);
+      console.log(`Decrypted Amount: ${decryptedAmount}`);
+
+      return res.json({
+        success: true,
+        type: 'decrypt',
+        decryptedAmount,
+      });
+    } catch (err) {
+      return res.status(400).json({ success: false, message: 'Decryption failed. Invalid encrypted text.' });
+    }
+
+  } else {
+    return res.status(400).json({ success: false, message: 'Invalid type. Use encrypt or decrypt.' });
+  }
+});
 app.get('/handleJuspayResponse', async (req, res) => {
   const orderId = req.query.order_id || req.query.orderId;
   let redirectingurl = req.query.redirectingurl || '';
