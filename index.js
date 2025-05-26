@@ -129,7 +129,6 @@ app.get('/pay', (req, res) => {
   }
 });
 
-
 app.get("/createPayment", (req, res) => {
   const { amount, key, type } = req.query;
 
@@ -146,7 +145,13 @@ app.get("/createPayment", (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing amount to encrypt' });
     }
 
-    const encryptedAmount = cryptr.encrypt(amount);
+    // Convert amount to integer before encryption
+    const intAmount = parseInt(amount);
+    if (isNaN(intAmount)) {
+      return res.status(400).json({ success: false, message: 'Amount must be a valid number' });
+    }
+
+    const encryptedAmount = cryptr.encrypt(intAmount.toString()); // encrypt as string
     console.log(`Encrypted Amount: ${encryptedAmount}`);
 
     return res.json({
@@ -161,8 +166,14 @@ app.get("/createPayment", (req, res) => {
     }
 
     try {
-      const decryptedAmount = cryptr.decrypt(amount);
-      console.log(`Decrypted Amount: ${decryptedAmount}`);
+      const decryptedAmountStr = cryptr.decrypt(amount);
+      const decryptedAmount = parseInt(decryptedAmountStr);
+
+      if (isNaN(decryptedAmount)) {
+        return res.status(400).json({ success: false, message: 'Decrypted value is not a valid number' });
+      }
+
+      console.log(`Decrypted Amount (as integer): ${decryptedAmount}`);
 
       return res.json({
         success: true,
@@ -177,6 +188,9 @@ app.get("/createPayment", (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid type. Use encrypt or decrypt.' });
   }
 });
+
+
+
 app.get('/handleJuspayResponse', async (req, res) => {
   const orderId = req.query.order_id || req.query.orderId;
   let redirectingurl = req.query.redirectingurl || '';
